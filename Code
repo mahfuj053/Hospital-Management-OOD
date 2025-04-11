@@ -1,0 +1,231 @@
+import java.io.*;
+import java.util.Scanner;
+class Patient {
+    private String name;
+    private String address;
+    private String disease;
+    private String admissionDate;
+    private double totalFees;
+    private double depositMoney;
+ public Patient(String name, String address, String disease, String admissionDate, double totalFees, double depositMoney) {
+        this.name = name;
+        this.address = address;
+        this.disease = disease;
+        this.admissionDate = admissionDate;
+        this.totalFees = totalFees;
+        this.depositMoney = depositMoney;
+    }
+public String getName() {
+        return name;
+    }
+ public String getAddress() {
+        return address;
+    }
+    public String getDisease() {
+        return disease;
+    }
+    public String getAdmissionDate() {
+        return admissionDate;
+    }
+    public double getTotalFees() {
+        return totalFees;
+    }
+    public double getDepositMoney() {
+        return depositMoney;
+    }
+    
+    public String toString() {
+        return "Name: " + name +
+                "\nAddress: " + address +
+                "\nDisease: " + disease +
+                "\nAdmission Date: " + admissionDate +
+                "\nTotal Fees: " + totalFees +
+                "\nDeposit Money: " + depositMoney + "\n";
+    }
+}
+public class PatientRecordManagementSystem {
+    private static final String FILE_NAME = "patient_records.txt";
+    private static final String DEFAULT_USERNAME = "Emon";
+    private static final String DEFAULT_PASSWORD = "emon1192";
+    private static File file = new File(FILE_NAME);
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        initializeFile();
+        login();
+        while (true) {
+            System.out.println("Patient Record Management System");
+            System.out.println("1. Add Patient Record");
+            System.out.println("2. Search Patient Record");
+            System.out.println("3. View Patient Records");
+            System.out.println("4. Delete Patient Record");
+            System.out.println("5. Update Credentials");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); 
+
+            switch (choice) {
+                case 1:
+                    addPatientRecord();
+                    break;
+                case 2:
+                    searchPatientRecord();
+                    break;
+                case 3:
+                    viewPatientRecords();
+                    break;
+                case 4:
+                    deletePatientRecord();
+                    break;
+                case 5:
+                    updateCredentials();
+                    break;
+                case 6:
+                    System.out.println("Exiting...");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice! Please try again.");
+            }
+        }
+    }
+
+    private static void initializeFile() {
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+                try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+                    writer.println(DEFAULT_USERNAME + " " + DEFAULT_PASSWORD);
+                }
+                System.out.println("File created with default credentials.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void login() {
+        System.out.println("Welcome to Patient Record Management System");
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+        try (Scanner fileScanner = new Scanner(file)) {
+            if (!fileScanner.hasNextLine() || !fileScanner.nextLine().equals(username + " " + password)) {
+                System.out.println("Invalid credentials! Please try again.");
+                login();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void addPatientRecord() {
+        System.out.println("Enter patient details:");
+        System.out.print("Name: ");
+        String name = scanner.nextLine();
+        System.out.print("Address: ");
+        String address = scanner.nextLine();
+        System.out.print("Disease: ");
+        String disease = scanner.nextLine();
+        System.out.print("Admission Date: ");
+        String admissionDate = scanner.nextLine();
+        System.out.print("Total Fees: ");
+        double totalFees = scanner.nextDouble();
+        System.out.print("Deposit Money: ");
+        double depositMoney = scanner.nextDouble();
+        Patient patient = new Patient(name, address, disease, admissionDate, totalFees, depositMoney);
+        try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+            writer.println(patient);
+            System.out.println("Patient record added successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void searchPatientRecord() {
+        System.out.print("Enter patient's name to search: ");
+        String nameToSearch = scanner.nextLine();
+        try (Scanner fileScanner = new Scanner(file)) {
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                if (line.contains(nameToSearch)) {
+                    System.out.println("Patient Record found:");
+                    System.out.println(line);
+                    return;
+                }
+            }
+            System.out.println("Patient Record not found!");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void viewPatientRecords() {
+        try (Scanner fileScanner = new Scanner(file)) {
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                System.out.println(line);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void deletePatientRecord() {
+        System.out.print("Enter patient's name to delete record: ");
+        String nameToDelete = scanner.nextLine();
+        try {
+            File tempFile = new File("temp.txt");
+            PrintWriter writer = new PrintWriter(new FileWriter(tempFile));
+            Scanner fileScanner = new Scanner(file);
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                if (!line.contains(nameToDelete)) {
+                    writer.println(line);
+                }
+            }
+            fileScanner.close();
+            writer.close();
+
+            if (!file.delete()) {
+                System.out.println("Unable to delete patient record.");
+                return;
+            }
+            if (!tempFile.renameTo(file)) {
+                System.out.println("Unable to delete patient record.");
+                return;
+            }
+            System.out.println("Patient record deleted successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void updateCredentials() {
+        System.out.print("Enter new username: ");
+        String newUsername = scanner.nextLine();
+        System.out.print("Enter new password: ");
+        String newPassword = scanner.nextLine();
+        try {
+            File tempFile = new File("temp.txt");
+            PrintWriter writer = new PrintWriter(new FileWriter(tempFile));
+            Scanner fileScanner = new Scanner(file);
+            writer.println(newUsername + " " + newPassword);
+            fileScanner.nextLine(); // skip the first line with default credentials
+            while (fileScanner.hasNextLine()) {
+                writer.println(fileScanner.nextLine());
+            }
+            fileScanner.close();
+            writer.close();
+            if (!file.delete()) {
+                System.out.println("Unable to update credentials.");
+                return;
+            }
+
+            if (!tempFile.renameTo(file)) {
+                System.out.println("Unable to update credentials.");
+                return;
+            }
+            System.out.println("Credentials updated successfully.");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
